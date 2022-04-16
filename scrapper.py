@@ -17,9 +17,9 @@ Url = 'https://cpu.userbenchmark.com/'
 
 Elements = {
     'Card'   : 'hovertarget',
-    'Ranking': '/html/body/div[2]/div/div[6]/form/div[2]/table/tbody/tr[2]/td[1]/div',
-    'Model'  : 'semi-strongs lighterblacktexts',
-    'Price'  : 'mh-tc pybg spybr',
+    'Ranking': 'td',
+    'Model'  : "//tr[@class='hovertarget']/td[2]/div/div[2]/span",
+    'Price'  : "//tr[@class='hovertarget']td[10]/div[1]",
     'NextBtn': ['/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[2]/a', '/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[3]/a'],
 }
 
@@ -40,39 +40,48 @@ def GetData():
     while NextBtn:
 
         Cards = driver.find_elements_by_class_name(Elements['Card'])
-        
-        print("")
 
-        grr = Cards[0].find_element_by_class_name(Elements['Price'])
-
-        print(grr)
-        print("")
+        print(Cards)
 
         for i in Cards:
 
             try:
                 
-                Ranking = i.find_element_by_xpath(Elements['Ranking']).text
-
-                print(Ranking)
+                Ranking = i.find_element_by_tag_name(Elements['Ranking']).text
 
             except Exception:
 
-                Ranking = "Not found."
+                Ranking = "Not found"
+
+            finally:
+                print(Ranking)
 
             try:
 
-                Price = i.find_element_by_class_name(Elements['Price']).text
-                print(Price)
+                Price = i.find_element_by_xpath(Elements['Price']).text
 
             except Exception:
 
-                Price = "Not found."
+                Price = "Not found"
+
+            finally:
+                print(Price)
+
+            try:
+
+                Brand = i.find_element_by_xpath(Elements['Model']).text
+
+            except Exception:
+
+                Brand = 'Not found'
+
+            finally:
+                print(Brand)
 
             OutPut = {
 
                 'Ranking': Ranking,
-                'Brand and Model': i.find_element_by_class_name(Elements['Model']).text,
+                'Brand and Model': Brand,
                 'Price': Price,
 
             }
@@ -83,7 +92,7 @@ def GetData():
 
         NextBtn.click()
 
-        time.sleep(0.5)
+        time.sleep(0.8)
 
         NextBtn = driver.find_element_by_xpath(Elements['NextBtn'][1])
 
@@ -93,7 +102,7 @@ def GetData():
 def Save(OP):
 
     df = pd.DataFrame(OP, columns=['Ranking', 'Brand and Model', 'Price'])
-    df.to_excel('Cars List.xls', index=False, columns=['Ranking', 'Brand and Model', 'Price'])
+    df.to_excel('CPUs.xls', index=False, columns=['Ranking', 'Brand and Model', 'Price'])
 
 
 
