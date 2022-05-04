@@ -1,3 +1,6 @@
+from ast import Break
+from cgi import print_directory
+from logging import exception
 from xml.dom.minidom import Element
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,20 +11,18 @@ import pandas as pd
 
 #Defining important variables.
 
-
-#initial xpath = /html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[2]/a
-#Second xpath  = /html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[3]/a
-
+#/html/body/div[2]/div/div[6]/form/div[2]/nav
+#/html/body/div[2]/div/div[6]/form/div[2]/nav
 
 Url = 'https://cpu.userbenchmark.com/'
 
 Elements = {
-    'Card'   : 'hovertarget',
-    'Ranking': 'td',
-    'Model'  : "//tr[@class='hovertarget']/td[2]/div/div[2]/span",
-    'Price'  : "//tr[@class='hovertarget']td[10]/div[1]",
-    'NextBtn': ['/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[2]/a', '/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[3]/a'],
-}
+    'Card'      : 'hovertarget',
+    'Ranking'   : 'td',
+    'Model'     : 'semi-strongs.lighterblacktexts',
+    'Price'     : 'div',
+    'NextBtn'   : ['/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[2]/a', '/html/body/div[2]/div/div[6]/form/div[2]/nav/ul/li[3]/a'],
+}    
 
 driver = webdriver.Chrome()
 
@@ -43,6 +44,8 @@ def GetData():
 
         print(Cards)
 
+        counter = 1
+
         for i in Cards:
 
             try:
@@ -53,30 +56,27 @@ def GetData():
 
                 Ranking = "Not found"
 
-            finally:
-                print(Ranking)
-
             try:
 
-                Price = i.find_element_by_xpath(Elements['Price']).text
+                PriceCard = driver.find_element_by_xpath('/html/body/div[2]/div/div[6]/form/div[2]/table/tbody/tr[%s]/td[10]' % (counter))
+                Price = PriceCard.find_element_by_tag_name(Elements['Price']).text
 
             except Exception:
 
                 Price = "Not found"
 
-            finally:
-                print(Price)
-
             try:
 
-                Brand = i.find_element_by_xpath(Elements['Model']).text
+                Brand = i.find_element_by_class_name(Elements['Model']).text
+                
+                if 'Compare' in Brand:
+
+                    Brand = Brand.replace('Compare', '')
+                    Brand = Brand.replace('\n', '')
 
             except Exception:
 
                 Brand = 'Not found'
-
-            finally:
-                print(Brand)
 
             OutPut = {
 
@@ -86,15 +86,40 @@ def GetData():
 
             }
 
+            print("")
+
             Data.append(OutPut)
+
+            print(OutPut)
+
+            print("")
+
+            counter += 1
 
             time.sleep(0.06)
 
-        NextBtn.click()
+        try:
 
-        time.sleep(0.8)
+            NextBtn = driver.find_element_by_xpath(Elements['NextBtn'][0])
+                
+            if NextBtn.get_attribute('href'):
 
-        NextBtn = driver.find_element_by_xpath(Elements['NextBtn'][1])
+                NextBtn.click()
+
+            else:
+
+                NextBtn = driver.find_element_by_xpath(Elements['NextBtn'][1])
+                NextBtn.click()
+
+            element = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, Elements['NextBtn'][1]))
+            )
+
+            NextBtn = driver.find_element_by_xpath(Elements['NextBtn'][1])
+
+        except Exception:
+
+            break
 
     return Data        
 
