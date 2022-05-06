@@ -96,7 +96,7 @@ def GetData():
 
             counter += 1
 
-            time.sleep(0.06)
+            time.sleep(0.05)
 
         try:
 
